@@ -4,6 +4,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 
 class QuakeMap extends StatefulWidget {
   QuakeMap({Key key}) : super(key: key);
@@ -27,17 +28,33 @@ class _QuakeMapState extends State<QuakeMap> {
     setState(() {
       _markers.clear();
       for (int quake = 0; quake < _features.length; quake++) {
+        String _quakeID = _features[quake]["id"].toString();
+        double _quakeMag =
+            double.parse(_features[quake]["properties"]["mag"].toString());
+        String _quakePlace = _features[quake]["properties"]["place"];
+
+        var _timeFormat = DateFormat.yMMMMd().add_Hm();
+        int _quakeTime = _features[quake]["properties"]["time"];
+        String _formattedTime = _timeFormat
+            .format(DateTime.fromMillisecondsSinceEpoch(_quakeTime))
+            .toString();
+
         final marker = Marker(
-          markerId: MarkerId(_features[quake]["id"].toString()),
+          markerId: MarkerId(_quakeID),
           position: LatLng(_features[quake]["geometry"]["coordinates"][1],
               _features[quake]["geometry"]["coordinates"][0]),
           infoWindow: InfoWindow(
-            title: "Magnitude: ${_features[quake]["properties"]["mag"]}",
-            snippet: _features[quake]["properties"]["place"].toString(),
-          ),
+              title:
+                  "ID: $_quakeID | Magnitude: ${_quakeMag.toStringAsFixed(2)}",
+              snippet: "$_quakePlace",
+              onTap: () {
+                _showAlertMessage(
+                    context, _formattedTime, _quakeMag.toStringAsFixed(2));
+              }),
         );
-        _markers[_features[quake]["properties"]["place"]] = marker;
+        _markers[_quakeID] = marker;
       }
+      print(_markers.keys);
     });
   }
 
@@ -70,4 +87,18 @@ Future<Map> getQuake() async {
   http.Response response = await http.get(_jsonURL);
 
   return jsonDecode(response.body);
+}
+
+void _showAlertMessage(BuildContext context, String time, String mag) {
+  var alert = AlertDialog(
+    title: Text("Terremoto - Magnitude $mag"),
+    content: Text("Horário: $time"),
+    actions: <Widget>[
+      FlatButton(
+        onPressed: () => Navigator.pop(context),
+        child: Text("OK"),
+      )
+    ],
+  );
+  showDialog(context: context, builder: (context) => alert);
 }
