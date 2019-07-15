@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:flare_flutter/flare_actor.dart';
 
 class QuakeMap extends StatefulWidget {
   QuakeMap({Key key}) : super(key: key);
@@ -41,8 +42,11 @@ class _QuakeMapState extends State<QuakeMap> {
 
         final marker = Marker(
           markerId: MarkerId(_quakeID),
-          position: LatLng(_features[quake]["geometry"]["coordinates"][1],
-              _features[quake]["geometry"]["coordinates"][0]),
+          position: LatLng(
+              double.parse(
+                  _features[quake]["geometry"]["coordinates"][1].toString()),
+              double.parse(
+                  _features[quake]["geometry"]["coordinates"][0].toString())),
           infoWindow: InfoWindow(
               title:
                   "ID: $_quakeID | Magnitude: ${_quakeMag.toStringAsFixed(2)}",
@@ -63,6 +67,10 @@ class _QuakeMapState extends State<QuakeMap> {
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
+          leading: FlareActor(
+            "lib/flare/maps.flr",
+            animation: "anim",
+          ),
           title: Text("Terremoto V2.0"),
           centerTitle: true,
           backgroundColor: Colors.green[700],
